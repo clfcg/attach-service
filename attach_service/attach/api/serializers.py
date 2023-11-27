@@ -1,9 +1,17 @@
 from rest_framework import serializers
-from attach.models import Histlpu
+from attach.models import Histlpu, People
+
+
+class PeopleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = People
+        fields = ['enp', 'ss', 'fam', 'im', 'ot']
 
 
 class HislpuSerializer(serializers.Serializer):
-    pid = serializers.IntegerField() # ЕНП
+    pid = persona = PeopleSerializer(read_only=True)
+
+    #pid = serializers.IntegerField() # ЕНП
     lpudt = serializers.DateTimeField()
     lpudx = serializers.DateTimeField()
     lpuauto = serializers.IntegerField()
@@ -16,6 +24,7 @@ class HislpuSerializer(serializers.Serializer):
     ss_doctor = serializers.CharField(max_length=11)
     # doctorSince
     subdiv = serializers.CharField(max_length=64)
+    dedit = serializers.DateTimeField()
 
 
 

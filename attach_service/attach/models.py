@@ -8,36 +8,6 @@
 from django.db import models
 
 
-class Histlpu(models.Model):
-    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
-    pid = models.IntegerField(db_column='PID', blank=True, null=True)  # Field name made lowercase.
-    dedit = models.DateTimeField(db_column='DEDIT', blank=True, null=True)  # Field name made lowercase.
-    lpu = models.CharField(db_column='LPU', max_length=15, blank=True, null=True)  # Field name made lowercase.
-    lpuauto = models.IntegerField(db_column='LPUAUTO', blank=True, null=True)  # Field name made lowercase.
-    lpudt = models.DateTimeField(db_column='LPUDT', blank=True, null=True)  # Field name made lowercase.
-    lpudx = models.DateTimeField(db_column='LPUDX', blank=True, null=True)  # Field name made lowercase.
-    lputype = models.CharField(db_column='LPUTYPE', max_length=3, blank=True, null=True)  # Field name made lowercase.
-    lpu_conf = models.BooleanField(db_column='LPU_CONF', blank=True, null=True)  # Field name made lowercase.
-    oid = models.CharField(db_column='OID', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    district = models.CharField(db_column='DISTRICT', max_length=64, blank=True, null=True)  # Field name made lowercase.
-    subdiv = models.CharField(db_column='SUBDIV', max_length=64, blank=True, null=True)  # Field name made lowercase.
-    ss_doctor = models.CharField(db_column='SS_DOCTOR', max_length=11, blank=True, null=True)  # Field name made lowercase.
-    kateg = models.IntegerField(db_column='KATEG', blank=True, null=True)  # Field name made lowercase.
-    op = models.CharField(db_column='OP', max_length=1, blank=True, null=True)  # Field name made lowercase.
-    dsend = models.DateTimeField(db_column='DSEND', blank=True, null=True)  # Field name made lowercase.
-    dsend_mo = models.DateTimeField(db_column='DSEND_MO', blank=True, null=True)  # Field name made lowercase.
-    rclose = models.IntegerField(db_column='RCLOSE', blank=True, null=True)  # Field name made lowercase.
-    recin = models.IntegerField(db_column='RECIN', blank=True, null=True)  # Field name made lowercase.
-    fileout = models.IntegerField(db_column='FILEOUT', blank=True, null=True)  # Field name made lowercase.
-    err_cs = models.CharField(db_column='ERR_CS', max_length=30, blank=True, null=True)  # Field name made lowercase.
-    idtfoms = models.IntegerField(db_column='IDTFOMS', blank=True, null=True)  # Field name made lowercase.
-    remark = models.CharField(db_column='REMARK', max_length=100, blank=True, null=True)  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'HISTLPU'
-
-
 class People(models.Model):
     fam = models.CharField(db_column='FAM', max_length=40, blank=True, null=True)  # Field name made lowercase.
     im = models.CharField(db_column='IM', max_length=40, blank=True, null=True)  # Field name made lowercase.
@@ -230,6 +200,37 @@ class People(models.Model):
     class Meta:
         managed = False
         db_table = 'PEOPLE'
+
+
+class Histlpu(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    pid = models.ForeignKey(People, related_name='people', db_column='PID', on_delete=models.PROTECT)
+    #pid = models.IntegerField(db_column='PID', blank=True, null=True)  # Field name made lowercase.
+    dedit = models.DateTimeField(db_column='DEDIT', blank=True, null=True)  # Field name made lowercase.
+    lpu = models.CharField(db_column='LPU', max_length=15, blank=True, null=True)  # Field name made lowercase.
+    lpuauto = models.IntegerField(db_column='LPUAUTO', blank=True, null=True)  # Field name made lowercase.
+    lpudt = models.DateTimeField(db_column='LPUDT', blank=True, null=True)  # Field name made lowercase.
+    lpudx = models.DateTimeField(db_column='LPUDX', blank=True, null=True)  # Field name made lowercase.
+    lputype = models.CharField(db_column='LPUTYPE', max_length=3, blank=True, null=True)  # Field name made lowercase.
+    lpu_conf = models.BooleanField(db_column='LPU_CONF', blank=True, null=True)  # Field name made lowercase.
+    oid = models.CharField(db_column='OID', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    district = models.CharField(db_column='DISTRICT', max_length=64, blank=True, null=True)  # Field name made lowercase.
+    subdiv = models.CharField(db_column='SUBDIV', max_length=64, blank=True, null=True)  # Field name made lowercase.
+    ss_doctor = models.CharField(db_column='SS_DOCTOR', max_length=11, blank=True, null=True)  # Field name made lowercase.
+    kateg = models.IntegerField(db_column='KATEG', blank=True, null=True)  # Field name made lowercase.
+    op = models.CharField(db_column='OP', max_length=1, blank=True, null=True)  # Field name made lowercase.
+    dsend = models.DateTimeField(db_column='DSEND', blank=True, null=True)  # Field name made lowercase.
+    dsend_mo = models.DateTimeField(db_column='DSEND_MO', blank=True, null=True)  # Field name made lowercase.
+    rclose = models.IntegerField(db_column='RCLOSE', blank=True, null=True)  # Field name made lowercase.
+    recin = models.IntegerField(db_column='RECIN', blank=True, null=True)  # Field name made lowercase.
+    fileout = models.IntegerField(db_column='FILEOUT', blank=True, null=True)  # Field name made lowercase.
+    err_cs = models.CharField(db_column='ERR_CS', max_length=30, blank=True, null=True)  # Field name made lowercase.
+    idtfoms = models.IntegerField(db_column='IDTFOMS', blank=True, null=True)  # Field name made lowercase.
+    remark = models.CharField(db_column='REMARK', max_length=100, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'HISTLPU'
 
 
 class AuthGroup(models.Model):

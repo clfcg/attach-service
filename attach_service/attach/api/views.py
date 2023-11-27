@@ -6,5 +6,5 @@ from attach.models import Histlpu
 
 
 class HistlpuViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Histlpu.objects.filter(dedit__gte=datetime.date(2023, 11, 20))
+    queryset = Histlpu.objects.filter(dedit__gte=datetime.date(2023, 11, 21)).filter(lpu='530002')
     serializer_class = HislpuSerializer
