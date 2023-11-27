@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from attach.models import Histlpu, People
+from .exceptions import InvalidAttachFieldException
 
 
 class PeopleSerializer(serializers.ModelSerializer):
@@ -27,8 +29,14 @@ class HislpuSerializer(serializers.Serializer):
     dedit = serializers.DateTimeField()
 
 
+class GetViewDataAttachStartSerializer(serializers.Serializer):
+    def validate(self, data):
+        if 'external_request_id' not in data.keys():
+            print(data.keys())
+            raise InvalidAttachFieldException('Значение параметра externalRequestId должно быть заполнено.')
+        if 'date_query' not in data.keys():
+            raise InvalidAttachFieldException('Значение параметра dateQuery должно быть заполнено.')
+        return data
 
-#class HislpuSerializer(serializers.ModelSerializer):
-#    class Meta:
-#        model = Histlpu
-#        fields = ['pid', 'lpu', 'lpuauto', 'lpudt', 'lpudx', ]
+    external_request_id = serializers.CharField(max_length=50, required=False)
+    date_query = serializers.DateField(required=False)

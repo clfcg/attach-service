@@ -345,3 +345,10 @@ class DjangoSession(models.Model):
     class Meta:
         managed = False
         db_table = 'django_session'
+
+class GetViewDataAttachStart(models.Model):
+    external_request_id = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    op_token = models.CharField(max_length=50)
+    date_query = models.DateField()
+    user = models.CharField(max_length=50, null=True)
