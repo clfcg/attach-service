@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from attach.api.serializers import HislpuSerializer, GetViewDataAttachStartSerializer, GetViewDataAttachPollSerializer
 from attach.models import Histlpu, GetViewDataAttachStart, GetViewDataAttachPoll
+from attach.tasks import generate_attach_file
 
 
 #class HistlpuViewSet(viewsets.ReadOnlyModelViewSet):
@@ -32,6 +33,7 @@ class GetViewDataAttachStartView(APIView):
             )
             attach_poll.save()
 
+            generate_attach_file.send(op_token, serializer.data['date_query'])
             response_context = {
                 "externalRequestId": serializer.data['external_request_id'],
                 "opToken": op_token,
