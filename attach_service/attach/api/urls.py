@@ -10,6 +10,7 @@ app_name = 'attach'
 
 urlpatterns = [
     path('GetViewDataAttachStart/', views.GetViewDataAttachStartView.as_view(), name="attach_view_start"),
+    path('GetViewDataAttachPoll/', views.GetViewDataAttachPollView.as_view(), name="attach_view_poll"),
     #path('shop_category/', views.ShopCategoryListView.as_view(), name='shop_category_list'), 
     #path('shop_category/<pk>/', views.ShopCategoryDetailView.as_view(), name='shop_category_detail'),
     #path('', include(router.urls)),

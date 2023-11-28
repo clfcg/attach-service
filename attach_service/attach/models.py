@@ -352,3 +352,12 @@ class GetViewDataAttachStart(models.Model):
     op_token = models.CharField(max_length=50)
     date_query = models.DateField()
     user = models.CharField(max_length=50, null=True)
+
+
+class GetViewDataAttachPoll(models.Model):
+    external_request_id = models.CharField(max_length=50, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    op_token = models.CharField(max_length=50)
+    poll_file = models.FileField(upload_to='poll/%Y/%m/%d/', null=True)
+    user = models.CharField(max_length=50, null=True)
+    status = models.CharField(max_length=15)
