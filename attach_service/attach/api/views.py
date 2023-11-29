@@ -54,5 +54,5 @@ class GetViewDataAttachPollView(APIView):
                 "status": poll_file.status,
             }
             if poll_file.status == 'COMPLITE':
-                response_context["viewAttachFile"] = poll_file.poll_file
+                response_context["viewAttachFile"] = poll_file.poll_file.url
             return Response(response_context, 200)
