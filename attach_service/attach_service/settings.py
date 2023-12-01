@@ -90,7 +90,15 @@ WSGI_APPLICATION = 'attach_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': env('DBNAME'),
+        'NAME': env('DBNAME_DEFAULT'),
+        'USER': env('DBUSER'),
+        'PASSWORD': env('DBPASSWORD'),
+        'HOST': env('DBHOST'),
+        'OPTIONS': {'driver':'ODBC Driver 17 for SQL Server',}
+    },
+    'registr': {
+        'ENGINE': 'mssql',
+        'NAME': env('DBNAME_REGISTR'),
         'USER': env('DBUSER'),
         'PASSWORD': env('DBPASSWORD'),
         'HOST': env('DBHOST'),
