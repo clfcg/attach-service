@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'django_dramatiq',
     'attach.apps.AttachConfig',
     'rest_framework',
+    'drf_api_logger',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -61,6 +63,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware',
 ]
 
 ROOT_URLCONF = 'attach_service.urls'
@@ -154,6 +158,7 @@ MEDIA_URL = '/files/'
 REST_FRAMEWORK = { 
     #'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     'EXCEPTION_HANDLER': 'attach.api.utils.custom_exception_handler.custom_exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     }
 
 DRAMATIQ_BROKER = {
@@ -175,3 +180,8 @@ DRAMATIQ_BROKER = {
 # Defines which database should be used to persist Task objects when the
 # AdminMiddleware is enabled.  The default value is "default".
 DRAMATIQ_TASKS_DATABASE = "default"
+
+
+DRF_API_LOGGER_DATABASE = True
+
+DRF_API_LOGGER_PATH_TYPE = 'FULL_PATH'
