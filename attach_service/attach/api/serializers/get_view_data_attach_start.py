@@ -1,19 +1,29 @@
+import re
+
 from rest_framework import serializers
 
-from attach.api.exceptions import InvalidAttachFieldException
+from attach.api.exceptions import ParameterIsRequired, ParameterDataIsRequired, InvalidDateFormatOrNone
 
+
+DATE_REGEX = r'\d{4}-\d\d-\d\d'
 
 class GetViewDataAttachStartSerializer(serializers.Serializer):
-    external_request_id = serializers.CharField(max_length=50, required=False)
-    date_query = serializers.DateField(required=False)
+    externalRequestId = serializers.CharField(max_length=64, required=False, allow_blank=True)
+    dateQuery = serializers.DateField(required=False, allow_null=True)
 
     def validate(self, data):
-        if 'external_request_id' not in data.keys():
-            print(data.keys())
-            raise InvalidAttachFieldException('Значение параметра externalRequestId должно быть заполнено.')
-        if 'date_query' not in data.keys():
-            raise InvalidAttachFieldException('Значение параметра dateQuery должно быть заполнено.')
+        if 'externalRequestId' not in data.keys():
+            raise ParameterIsRequired('externalRequestId')
+        if data['externalRequestId'] == '':
+            raise ParameterDataIsRequired('externalRequestId')
+        if 'dateQuery' not in data.keys():
+            raise ParameterIsRequired('dateQuery')
+        if data['dateQuery'] is None:
+            raise InvalidDateFormatOrNone('dateQuery')
         return data
-
-    external_request_id = serializers.CharField(max_length=50, required=False)
-    date_query = serializers.DateField(required=False)
+    
+    def to_internal_value(self, data):
+        if 'dateQuery' in data.keys():
+            if data['dateQuery'] == '' or not re.fullmatch(DATE_REGEX, data['dateQuery']):
+                data['dateQuery'] = None
+        return super(GetViewDataAttachStartSerializer, self).to_internal_value(data)

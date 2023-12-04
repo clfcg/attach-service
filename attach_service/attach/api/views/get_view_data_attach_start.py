@@ -14,9 +14,9 @@ class GetViewDataAttachStartView(APIView):
         if serializer.is_valid(raise_exception=True):
             op_token = token_hex(16)
             data_attach = GetViewDataAttachStart(
-                external_request_id=serializer.data['external_request_id'],
+                external_request_id=serializer.data['externalRequestId'],
                 op_token=op_token,
-                date_query=serializer.data['date_query']
+                date_query=serializer.data['dateQuery']
             )
             data_attach.save()
 
@@ -26,9 +26,9 @@ class GetViewDataAttachStartView(APIView):
             )
             attach_poll.save()
 
-            generate_attach_file.send(op_token, serializer.data['date_query'])
+            generate_attach_file.send(op_token, serializer.data['dateQuery'])
             response_context = {
-                "externalRequestId": serializer.data['external_request_id'],
+                "externalRequestId": serializer.data['externalRequestId'],
                 "opToken": op_token,
             }
             return Response(response_context, 200)
