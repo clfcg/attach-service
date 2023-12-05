@@ -183,8 +183,8 @@ DRAMATIQ_TASKS_DATABASE = "default"
 
 
 DRF_API_LOGGER_DATABASE = True
-
 DRF_API_LOGGER_PATH_TYPE = 'FULL_PATH'
+DRF_API_LOGGER_SKIP_URL_NAME = ['schema', 'docs']
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'ТФОМС НО прикрепления',

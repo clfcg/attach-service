@@ -39,7 +39,7 @@ from attach.tasks import generate_attach_file
                 }
             ),
             status.HTTP_400_BAD_REQUEST: inline_serializer(
-                name='ErrorCodeResponse',
+                name='ErrorCodeResponseStart',
                 fields={
                     'code': serializers.CharField(),
                     'message': serializers.CharField(),
