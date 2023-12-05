@@ -32,3 +32,9 @@ class InvalidDateFormatOrNone(BaseCustomException):
         custom_code = "409.3"
         detail = f"Значение параметр {param_name} должно соответствовать формату ГГГГ-ММ-ДД."
         super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class InvalidOpToken(BaseCustomException):
+    def __init__(self, param_name):
+        custom_code = "409.4"
+        detail = f"OpToken: {param_name} не существует."
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)

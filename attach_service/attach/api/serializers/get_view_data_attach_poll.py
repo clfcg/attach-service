@@ -1,16 +1,22 @@
 from rest_framework import serializers
 
-#from attach.api.exceptions import InvalidAttachFieldException
 from attach.models import GetViewDataAttachPoll
+from attach.api.exceptions import ParameterIsRequired, ParameterDataIsRequired, InvalidOpToken
 
 
 class GetViewDataAttachPollSerializer(serializers.Serializer):
-    # def validate(self, data):
-    #     if 'external_request_id' not in data.keys() and data['external_request_id'] == '':
-    #         raise InvalidAttachFieldException('idRequest is needed')
-    #     if len(GetViewDataAttachPoll.objects.filter(op_token__in=data['op_token'])) == 0 and data['op_token'] == '':
-    #         raise InvalidAttachFieldException('opToken is needed')
-    #     return data
+    externalRequestId = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    opToken = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
-    external_request_id = serializers.CharField(max_length=50, required=False)
-    op_token = serializers.CharField(max_length=50, required=False)
+    def validate(self, data):
+        if 'externalRequestId' not in data.keys():
+            raise ParameterIsRequired('externalRequestId')
+        if data['externalRequestId'] == '':
+            raise ParameterDataIsRequired('externalRequestId')
+        if 'opToken' not in data.keys():
+            raise ParameterIsRequired('opToken')
+        if data['opToken'] == '':
+            raise ParameterDataIsRequired('opToken')
+        if len(GetViewDataAttachPoll.objects.filter(op_token__in=[data['opToken']])) == 0:
+            raise InvalidOpToken(data['opToken'])
+        return data
