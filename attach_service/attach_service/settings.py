@@ -185,3 +185,11 @@ DRAMATIQ_TASKS_DATABASE = "default"
 DRF_API_LOGGER_DATABASE = True
 
 DRF_API_LOGGER_PATH_TYPE = 'FULL_PATH'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'ТФОМС НО прикрепления',
+    'DESCRIPTION': 'Сервис прикреплений',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    "COMPONENT_SPLIT_REQUEST": True,
+}
