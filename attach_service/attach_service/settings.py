@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_dramatiq',
     'attach.apps.AttachConfig',
     'rest_framework',
+    'rest_framework.authtoken',
     'drf_api_logger',
     'drf_spectacular',
 ]
@@ -156,7 +157,7 @@ MEDIA_ROOT = BASE_DIR / 'files'
 MEDIA_URL = '/files/'
 
 REST_FRAMEWORK = { 
-    #'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     'EXCEPTION_HANDLER': 'attach.api.utils.custom_exception_handler.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     }

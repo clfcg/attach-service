@@ -3,12 +3,16 @@ from secrets import token_hex
 from rest_framework import status, serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from drf_spectacular.utils import extend_schema_view, extend_schema, inline_serializer, OpenApiExample
+
 
 from attach.api.serializers import GetViewDataAttachStartSerializer
 from attach.models import GetViewDataAttachStart, GetViewDataAttachPoll
 from attach.tasks import generate_attach_file
+
 
 @extend_schema(
     tags=["GetViewAttachStart/Poll"]
@@ -51,6 +55,9 @@ from attach.tasks import generate_attach_file
 
 
 class GetViewDataAttachStartView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         serializer = GetViewDataAttachStartSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
