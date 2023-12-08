@@ -38,3 +38,21 @@ class InvalidOpToken(BaseCustomException):
         custom_code = "409.4"
         detail = f"OpToken: {param_name} не существует."
         super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class InvalidParameters(BaseCustomException):
+    def __init__(self):
+        custom_code = "409.5"
+        detail = "Отсутствует обязательный параметр или цепочка параметров."
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class PersonNotFound(BaseCustomException):
+    def __init__(self):
+        custom_code = "409.6"
+        detail = "По заданным параметрам ни одна персона не найдена."
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class MoreThanOnePerson(BaseCustomException):
+    def __init__(self):
+        custom_code = "409.7"
+        detail = "По заданным параметрам найдено больше одной персоны."
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)

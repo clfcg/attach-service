@@ -64,10 +64,10 @@ def generate_attach_file(op_token, date_query):
         attach_dict["attachBeginD"] = item.lpudt
         if item.lpudx is not None:
             attach_dict["attachEndD"] = item.lpudx
-        if item.lpuauto is None:
-            attach_dict["attachMethod"] = item.lpuauto
+        if item.lpuauto is not None:
+            attach_dict["attachMethod"] = int(item.lpuauto)
         if item.lputype is not None:
-            attach_dict["attachType"] = item.lputype
+            attach_dict["attachType"] = int(item.lputype)
         if item.DISTRICT is not None:
             attach_dict["areaOID"] = item.DISTRICT
         if item.OID is not None:
