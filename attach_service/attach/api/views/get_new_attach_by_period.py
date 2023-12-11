@@ -1,12 +1,16 @@
 import re
+from datetime import date
 
 from django.db.models import F, DateField, IntegerField
 from django.db.models.functions import Cast
 
+from rest_framework import status, serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, inline_serializer, OpenApiParameter
 
 from attach.models import RegistrHistlpu
 from attach.api.exceptions import InvalidParameters, InvalidDateFormatOrNone
@@ -14,6 +18,50 @@ from attach.api.serializers import GetPersonaDataSerializer
 
 
 DATE_REGEX = r'\d{4}-\d\d-\d\d'
+
+@extend_schema(
+    tags=["Get attach and persona data"]
+)
+@extend_schema_view(
+    get=extend_schema(
+        summary="Получить информацию о прикрепленных гражданах за указанный период",
+        request=GetPersonaDataSerializer,
+        responses={
+            status.HTTP_200_OK : GetPersonaDataSerializer,
+            status.HTTP_400_BAD_REQUEST: inline_serializer(
+                name='ErrorCodeResponse',
+                fields={
+                    'code': serializers.CharField(),
+                    'message': serializers.CharField(),
+                }
+            )
+        },
+        parameters=[
+            OpenApiParameter(
+                name='queryBeginD',
+                location=OpenApiParameter.QUERY,
+                description='Дата начала периода',
+                required=True,
+                type=date,
+            ),
+            OpenApiParameter(
+                name='queryEndD',
+                location=OpenApiParameter.QUERY,
+                description='Дата окончания периода',
+                required=True,
+                type=date,
+            ),
+            OpenApiParameter(
+                name='externalRequestId',
+                location=OpenApiParameter.QUERY,
+                description='Идентификатор запроса',
+                required=False,
+                type=str,
+            ),
+        ]
+    )
+)
+
 
 class GetNewAttachByPeriod(APIView):
     authentication_classes = [TokenAuthentication]
@@ -65,7 +113,6 @@ class GetNewAttachByPeriod(APIView):
 
         context_list = []
         context_dict = {}
-
         for item in serializer.data:
             context_dict.clear()
             if 'externalRequestId' in self.request.query_params:
