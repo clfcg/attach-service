@@ -152,7 +152,7 @@ class GetAttachStatusChangeView(APIView):
                         context_dict[k] = f'{context_dict[k][:3]}-{context_dict[k][3:6]}-{context_dict[k][6:9]} {context_dict[k][9:11]}'
             attach_list.append(context_dict.copy())
 
-        context_list['attach'] = attach_list.copy()
+        context_list['attachList'] = attach_list.copy()
         attach_list.clear()
 
         for item in de_attach_serializer.data:
@@ -166,5 +166,5 @@ class GetAttachStatusChangeView(APIView):
                         context_dict[k] = f'{context_dict[k][:3]}-{context_dict[k][3:6]}-{context_dict[k][6:9]} {context_dict[k][9:11]}'
             attach_list.append(context_dict.copy())
 
-        context_list['deAttach'] = attach_list.copy()
+        context_list['deAttachList'] = attach_list.copy()
         return Response(context_list, 200)

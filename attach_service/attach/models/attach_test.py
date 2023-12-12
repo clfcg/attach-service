@@ -6,6 +6,7 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from attach.models.registr import RegistrPeople
 
 
 class People(models.Model):
@@ -361,3 +362,39 @@ class GetViewDataAttachPoll(models.Model):
     poll_file = models.FileField(upload_to='poll/%Y/%m/%d/', null=True)
     user = models.CharField(max_length=50, null=True)
     status = models.CharField(max_length=15)
+
+
+class StatusAttach(models.Model):
+    status_code = models.IntegerField()
+    caption = models.CharField(max_length=64)
+
+
+class RegisterAttach(models.Model):
+    external_request_id = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    pid = models.IntegerField(null=True)
+    enp = models.CharField(max_length=16)
+    date_attach_b = models.DateField()
+    date_attach_e = models.DateField(null=True)
+    attach_method = models.IntegerField()
+    area_type = models.IntegerField()
+    area_id = models.CharField(max_length=64, null=True)
+    mo_id = models.CharField(max_length=64)
+    mo_code = models.CharField(max_length=6)
+    mo_f_id = models.CharField(max_length=64, null=True)
+    doctor_id = models.CharField(max_length=64, null=True)
+    snils_doctor = models.CharField(max_length=14, null=True)
+    doctor_since = models.DateField(null=True)
+    mo_dep_id = models.CharField(max_length=64)
+    rs_err = models.CharField(max_length=10, null=True)
+    ferzl_err = models.CharField(max_length=10, null=True)
+    remark_err = models.CharField(max_length=500)
+    status = models.ForeignKey(StatusAttach, on_delete=models.DO_NOTHING, db_column='status')
+    remark = models.CharField(max_length=500, null=True)
+    user = models.CharField(max_length=64)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['pid', 'enp', 'mo_code', 'date_attach_b', 'date_attach_e',])
+        ]
