@@ -56,3 +56,27 @@ class MoreThanOnePerson(BaseCustomException):
         custom_code = "409.7"
         detail = "По заданным параметрам найдено больше одной персоны."
         super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class InvalidAttachMethod(BaseCustomException):
+    def __init__(self):
+        custom_code = "409.8"
+        detail = "Значение параметра attachMethod должно быть в диапазоне от 1 до 3"
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class InvalidAreaType(BaseCustomException):
+    def __init__(self):
+        custom_code = "409.9"
+        detail = "Значение параметра areaType должно быть в диапазоне от 1 до 3"
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class InvalidEnpLen(BaseCustomException):
+    def __init__(self):
+        custom_code = "409.10"
+        detail = "Формат ЕНП указан неверно - должен быть XXXXXXXXXXXXXXXX и содержать только разрешенные символы - цифры"
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class NotActivePolis(BaseCustomException):
+    def __init__(self):
+        custom_code = "409.11"
+        detail = "Персона не имеет активного страхового полиса на дату прикрепления"
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)

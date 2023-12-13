@@ -146,6 +146,8 @@ class GetAttachStatusChangeView(APIView):
             if 'externalRequestId' in self.request.query_params:
                 context_dict['externalRequestId'] = self.request.query_params['externalRequestId']
             for k, v in item.items():
+                if k == 'attachType' and v is None:
+                    context_dict[k] = 99
                 if v is not None:
                     context_dict[k] = v
                     if k == 'doctorSnils' and len(v) == 11:
@@ -160,6 +162,8 @@ class GetAttachStatusChangeView(APIView):
             if 'externalRequestId' in self.request.query_params:
                 context_dict['externalRequestId'] = self.request.query_params['externalRequestId']
             for k, v in item.items():
+                if k == 'attachType' and v is None:
+                    context_dict[k] = 99
                 if v is not None:
                     context_dict[k] = v
                     if k == 'doctorSnils' and len(v) == 11:
