@@ -190,7 +190,7 @@ class RegistrPeople(models.Model):
     rdoccn = models.CharField(db_column='RDOCCN', max_length=3, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'PEOPLE'
 
 
@@ -220,5 +220,42 @@ class RegistrHistlpu(models.Model):
     remark = models.CharField(db_column='REMARK', max_length=100, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'HISTLPU'
+
+
+class RegistrPolis(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    pid = models.ForeignKey(RegistrPeople, related_name='polis', db_column='PID', on_delete=models.DO_NOTHING)  # Field name made lowercase.
+    dedit = models.DateTimeField(db_column='DEDIT', blank=True, null=True)  # Field name made lowercase.
+    q = models.CharField(db_column='Q', max_length=5, blank=True, null=True)  # Field name made lowercase.
+    qogrn = models.CharField(db_column='QOGRN', max_length=15, blank=True, null=True)  # Field name made lowercase.
+    prz = models.CharField(db_column='PRZ', max_length=8, blank=True, null=True)  # Field name made lowercase.
+    spol = models.CharField(db_column='SPOL', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    npol = models.CharField(db_column='NPOL', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    poltp = models.IntegerField(db_column='POLTP', blank=True, null=True)  # Field name made lowercase.
+    polvid = models.IntegerField(db_column='POLVID', blank=True, null=True)  # Field name made lowercase.
+    dbeg = models.DateTimeField(db_column='DBEG', blank=True, null=True)  # Field name made lowercase.
+    dend = models.DateTimeField(db_column='DEND', blank=True, null=True)  # Field name made lowercase.
+    rstop = models.IntegerField(db_column='RSTOP', blank=True, null=True)  # Field name made lowercase.
+    dstop = models.DateTimeField(db_column='DSTOP', blank=True, null=True)  # Field name made lowercase.
+    dstop_cs = models.DateTimeField(db_column='DSTOP_CS', blank=True, null=True)  # Field name made lowercase.
+    st = models.IntegerField(db_column='ST', blank=True, null=True)  # Field name made lowercase.
+    del_field = models.BooleanField(db_column='DEL', blank=True, null=True)  # Field name made lowercase. Field renamed because it was a Python reserved word.
+    okato = models.CharField(db_column='OKATO', max_length=11, blank=True, null=True)  # Field name made lowercase.
+    nvs = models.CharField(db_column='NVS', max_length=9, blank=True, null=True)  # Field name made lowercase.
+    dvs = models.DateTimeField(db_column='DVS', blank=True, null=True)  # Field name made lowercase.
+    et = models.DateTimeField(db_column='ET', blank=True, null=True)  # Field name made lowercase.
+    unload = models.DateTimeField(db_column='UNLOAD', blank=True, null=True)  # Field name made lowercase.
+    dz = models.DateTimeField(db_column='DZ', blank=True, null=True)  # Field name made lowercase.
+    dp = models.DateTimeField(db_column='DP', blank=True, null=True)  # Field name made lowercase.
+    dh = models.DateTimeField(db_column='DH', blank=True, null=True)  # Field name made lowercase.
+    err = models.CharField(db_column='ERR', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    oldpid = models.IntegerField(db_column='OLDPID', blank=True, null=True)  # Field name made lowercase.
+    sout = models.DateTimeField(db_column='SOUT', blank=True, null=True)  # Field name made lowercase.
+    m2id = models.IntegerField(db_column='M2ID', blank=True, null=True)  # Field name made lowercase.
+    vs_form = models.IntegerField(db_column='VS_FORM', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'POLIS'
