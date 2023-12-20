@@ -1,0 +1,24 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mpi="http://ffoms.ru/types/4.5/mpiAttachControlSchema" xmlns:com="http://ffoms.ru/types/4.5/commonTypes">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <mpi:registerAttachRequest>
+         <com:externalRequestId>{{ rguid }}</com:externalRequestId>
+         <mpi:checkFlk>false</mpi:checkFlk>
+         <mpi:att>
+            <mpi:enp>{{ enp }}</mpi:enp>
+            <mpi:dateAttachB>{{ dateAttachB }}</mpi:dateAttachB>
+            {% if dateAttachE is not None %}<mpi:dateAttachE>{{ dateAttachE }}</mpi:dateAttachE>{% endif %}
+            <mpi:attachMethod>{{ attachMethod }}</mpi:attachMethod>
+            <mpi:areaType>{{ areaType }}</mpi:areaType>
+            {% if areaId is not None %}<mpi:areaId>{{ areaId }}</mpi:areaId>{% endif %}
+            <mpi:moId>{{ moId }}</mpi:moId>
+            <mpi:moCode>{{ moCode }}</mpi:moCode>
+            {% if moFId is not None %}<mpi:moFId>{{ moFId }}</mpi:moFId>{% endif %}
+            {% if doctorId is not None %}<mpi:doctorId>{{ doctorId }}</mpi:doctorId>{% endif %}
+            {% if snilsDoctor is not None %}<mpi:snilsDoctor>{{ snilsDoctor }}</mpi:snilsDoctor>{% endif %}
+            {% if doctorSince is not None %}<mpi:doctorSince>{{ doctorSince }}</mpi:doctorSince>{% endif %}
+            <mpi:moDepId>{{ moDepId }}</mpi:moDepId>
+         </mpi:att>
+      </mpi:registerAttachRequest>
+   </soapenv:Body>
+</soapenv:Envelope>

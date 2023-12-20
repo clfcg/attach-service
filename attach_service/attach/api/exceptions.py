@@ -80,3 +80,9 @@ class NotActivePolis(BaseCustomException):
         custom_code = "409.11"
         detail = "Персона не имеет активного страхового полиса на дату прикрепления"
         super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)
+
+class MPIError(BaseCustomException):
+    def __init__(self, mpi_code, mpi_detail):
+        custom_code = mpi_code
+        detail = mpi_detail
+        super().__init__(detail, status.HTTP_400_BAD_REQUEST, custom_code)

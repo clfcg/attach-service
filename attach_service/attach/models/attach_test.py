@@ -398,3 +398,14 @@ class RegisterAttach(models.Model):
         indexes = [
             models.Index(fields=['pid', 'enp', 'mo_code', 'date_attach_b', 'date_attach_e',])
         ]
+
+
+class MpiMessages(models.Model):
+    pid = models.IntegerField(null=True)
+    attach_id = models.ForeignKey(RegisterAttach, on_delete=models.DO_NOTHING, db_column='attach_id')
+    dt_request = models.DateTimeField(null=True)
+    dt_response = models.DateTimeField(null=True)
+    mpi_request = models.TextField(blank=True, null=True)
+    mpi_response = models.TextField(blank=True, null=True)
+    rguid = models.CharField(max_length=36, blank=True, null=True)
+    mpi_service = models.CharField(max_length=36, blank=True, null=True)
