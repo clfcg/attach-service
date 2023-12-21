@@ -44,7 +44,9 @@ class RegisterAttachView(MpiRegisterAttachMixin, APIView):
                 )
             attach_send.save()
 
-            pers = RegistrPeople.objects.using('registr').filter(enp=serializer.data['enp'])
+            pers = RegistrPeople.objects.using('registr').filter(enp=serializer.data['enp']).filter(
+                Q(dstop__isnull=True) | Q(dstop__gt=serializer.data['dateAttachB'])
+            )
             if len(pers) > 1:
                 RegisterAttach.objects.filter(pk=attach_send.pk).update(
                     rs_err=MoreThanOnePerson().default_code,
@@ -74,383 +76,214 @@ class RegisterAttachView(MpiRegisterAttachMixin, APIView):
                     raise NotActivePolis()
                 
                 attach = pers[0].attach.filter(lpudx__isnull=True)
+
+                attach_update = pers[0].attach.filter(
+                    lpu=serializer.data['moCode'],
+                    lputype=str(serializer.data['areaType']),
+                    lpudx__isnull=True,
+                )
+                attach_areatype = pers[0].attach.filter(
+                    lpu=serializer.data['moCode'],
+                    lpudx__isnull=True,
+                    lputype__isnull=False,
+                ).exclude(lputype=str(serializer.data['areaType']))
+
+                attach_before = pers[0].attach.filter(
+                    lpudx__isnull=True,
+                ).filter(
+                    Q(lputype__isnull=True) | Q(lputype='')
+                )
+                attach_current = pers[0].attach.filter(
+                    lputype=str(serializer.data['areaType']),
+                    lpudx__isnull=True,
+                ).exclude(lpu=serializer.data['moCode'])
+
                 ss_doctor_format = "".join(c for c in serializer.data['snilsDoctor'] if c.isdecimal())
-                if len(attach) == 1:
-                    for attach_item in attach:
-                        if (attach_item.lpu == serializer.data['moCode'] and 
-                            (attach_item.lputype == str(serializer.data['areaType']) or attach_item.lputype is None)):
 
-                            # Запрос в ФЕРЗЛ
-                            self.mixin_cleaned_data = serializer.data
-                            self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                            self.pid = pers[0].pk
-                            self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                            self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                            response_data = self.mixin_mpi_response()
+                # Запрос в ФЕРЗЛ
+                self.mixin_cleaned_data = serializer.data
+                self.mixin_cleaned_data['rguid'] = uuid.uuid4()
+                self.pid = pers[0].pk
+                self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
+                self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
+                response_data = self.mixin_mpi_response()
+                if 'err_code' in response_data.keys():
+                    RegisterAttach.objects.filter(pk=attach_send.pk).update(
+                        ferzl_err=response_data['err_code'],
+                        remark_err=response_data['err_message'],
+                        status=StatusAttach.objects.get(status_code=3)
+                    )
+                    raise MPIError(response_data['err_code'], response_data['err_message'])
 
-                            if 'err_code' in response_data.keys():
-                                RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                    ferzl_err=response_data['err_code'],
-                                    remark_err=response_data['err_message'],
-                                    status=StatusAttach.objects.get(status_code=3)
-                                )
-                                raise MPIError(response_data['err_code'], response_data['err_message'])
-
-                            RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
-                                dedit=datetime.now(),
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                district=serializer.data['areaId'],
-                                oid=serializer.data['moId'],
-                                subdiv=serializer.data['moDepId'],
-                                ss_doctor=ss_doctor_format,
-                            )
-                            RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                ss_doctor=ss_doctor_format,
-                                lpudt_doc=serializer.data['doctorSince'],
-                            )
-                            RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                status=StatusAttach.objects.get(status_code=1)
-                            )
-                        
-                        if (attach_item.lpu == serializer.data['moCode'] and 
-                            attach_item.lputype != str(serializer.data['areaType']) and 
-                            attach_item.lputype is not None):
-                            
-                            # Запрос в ФЕРЗЛ
-                            self.mixin_cleaned_data = serializer.data
-                            self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                            self.pid = pers[0].pk
-                            self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                            self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                            response_data = self.mixin_mpi_response()
-
-                            if 'err_code' in response_data.keys():
-                                RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                    ferzl_err=response_data['err_code'],
-                                    remark_err=response_data['err_message'],
-                                    status=StatusAttach.objects.get(status_code=3)
-                                )
-                                raise MPIError(response_data['err_code'], response_data['err_message'])
-                            
-                            new_attach = RegistrHistlpu(
-                                pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
-                                dedit=datetime.now(),
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                district=serializer.data['areaId'],
-                                oid=serializer.data['moId'],
-                                lpu=serializer.data['moCode'],
-                                subdiv=serializer.data['moDepId'],
-                                ss_doctor=ss_doctor_format,
-                            )
-                            new_attach.save()
-                            RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                ss_doctor=ss_doctor_format,
-                                lpudt_doc=serializer.data['doctorSince'],
-                            )
-                            RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                status=StatusAttach.objects.get(status_code=1)
-                            )
-
-                        if (attach_item.lpu != serializer.data['moCode']):
-
-                            #Запрос в ФЕРЗЛ
-                            self.mixin_cleaned_data = serializer.data
-                            self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                            self.pid = pers[0].pk
-                            self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                            self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                            response_data = self.mixin_mpi_response()
-
-                            if 'err_code' in response_data.keys():
-                                RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                    ferzl_err=response_data['err_code'],
-                                    remark_err=response_data['err_message'],
-                                    status=StatusAttach.objects.get(status_code=3)
-                                )
-                                raise MPIError(response_data['err_code'], response_data['err_message'])
-                            
-                            RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
-                                dedit=datetime.now(),
-                                lpudx=datetime.strptime(serializer.data['dateAttachB'], '%Y-%m-%d').date()-timedelta(days=1),
-                            )
-
-                            new_attach = RegistrHistlpu(
-                                pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
-                                dedit=datetime.now(),
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                district=serializer.data['areaId'],
-                                oid=serializer.data['moId'],
-                                lpu=serializer.data['moCode'],
-                                subdiv=serializer.data['moDepId'],
-                                ss_doctor=ss_doctor_format,
-                            )
-                            new_attach.save()
-
-                            RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
-                                lpu=serializer.data['moCode'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                ss_doctor=ss_doctor_format,
-                                lpudt_doc=serializer.data['doctorSince'],
-                            )
-                            RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                status=StatusAttach.objects.get(status_code=1)
-                            )
-                    
-                elif len(attach) > 1:
-                    check_list = set()
-                    for attach_item in attach:
-                        check_list.add((attach_item.lpu, attach_item.lputype))
-                    print(check_list)
-                    if len(check_list) == 1:
-                        #Запрос в ФЕРЗЛ
-                        self.mixin_cleaned_data = serializer.data
-                        self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                        self.pid = pers[0].pk
-                        self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                        self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                        response_data = self.mixin_mpi_response()
-
-                        if 'err_code' in response_data.keys():
-                            RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                ferzl_err=response_data['err_code'],
-                                remark_err=response_data['err_message'],
-                                status=StatusAttach.objects.get(status_code=3)
-                            )
-                            raise MPIError(response_data['err_code'], response_data['err_message'])
-
-                        for attach_item in attach:
-                            RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
-                                dedit=datetime.now(),
-                                lpudx=datetime.strptime(serializer.data['dateAttachB'], '%Y-%m-%d').date()-timedelta(days=1),
-                            )
-                        
-                        new_attach = RegistrHistlpu(
-                                pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
-                                dedit=datetime.now(),
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                district=serializer.data['areaId'],
-                                oid=serializer.data['moId'],
-                                lpu=serializer.data['moCode'],
-                                subdiv=serializer.data['moDepId'],
-                                ss_doctor=ss_doctor_format,
-                            )
-                        new_attach.save()
-
+                # Нашлось прикрепление по коду МО и типу участка
+                if len(attach_update) != 0:
+                    for attach_item in attach_update:
+                        RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
+                            dedit=datetime.now(),
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            district=serializer.data['areaId'],
+                            oid=serializer.data['moId'],
+                            subdiv=serializer.data['moDepId'],
+                            ss_doctor=ss_doctor_format,
+                        )
+                    if str(serializer.data['areaType']) == '1':
                         RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
-                                lpu=serializer.data['moCode'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                ss_doctor=ss_doctor_format,
-                                lpudt_doc=serializer.data['doctorSince'],
-                            )
-                        RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                status=StatusAttach.objects.get(status_code=1)
-                            )
-                        
-                    if len(check_list) > 1 and check_list[0][0] != check_list[1][0]:
-                        #Запрос в ФЕРЗЛ
-                        self.mixin_cleaned_data = serializer.data
-                        self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                        self.pid = pers[0].pk
-                        self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                        self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                        response_data = self.mixin_mpi_response()
+                            lpu=serializer.data['moCode'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            ss_doctor=ss_doctor_format,
+                            lpudt_doc=serializer.data['doctorSince'],
+                        )                       
+                    RegisterAttach.objects.filter(pk=attach_send.pk).update(
+                        status=StatusAttach.objects.get(status_code=1)
+                    )
 
-                        if 'err_code' in response_data.keys():
-                            RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                ferzl_err=response_data['err_code'],
-                                remark_err=response_data['err_message'],
-                                status=StatusAttach.objects.get(status_code=3)
-                            )
-                            raise MPIError(response_data['err_code'], response_data['err_message'])
-                        
-                        for attach_item in attach:
+                elif len(attach_current) != 0:
+                    for attach_item in attach_current:
+                        RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
+                            dedit=datetime.now(),
+                            lpudx=datetime.strptime(serializer.data['dateAttachB'], '%Y-%m-%d').date()-timedelta(days=1),
+                        )
+                    new_attach = RegistrHistlpu(
+                        pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
+                        dedit=datetime.now(),
+                        lpudt=serializer.data['dateAttachB'],
+                        lpudx=serializer.data['dateAttachE'],
+                        lpuauto=serializer.data['attachMethod'],
+                        lputype=serializer.data['areaType'],
+                        district=serializer.data['areaId'],
+                        oid=serializer.data['moId'],
+                        lpu=serializer.data['moCode'],
+                        subdiv=serializer.data['moDepId'],
+                        ss_doctor=ss_doctor_format,
+                    )
+                    new_attach.save()
+                    if str(serializer.data['areaType']) == '1':
+                        RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
+                            lpu=serializer.data['moCode'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            ss_doctor=ss_doctor_format,
+                            lpudt_doc=serializer.data['doctorSince'],
+                        )                       
+                    RegisterAttach.objects.filter(pk=attach_send.pk).update(
+                        status=StatusAttach.objects.get(status_code=1)
+                    )
+
+                elif len(attach_before) != 0:
+                    if str(serializer.data['areaType']) == '1':
+                        for attach_item in attach_before:
                             RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
                                 dedit=datetime.now(),
                                 lpudx=datetime.strptime(serializer.data['dateAttachB'], '%Y-%m-%d').date()-timedelta(days=1),
                             )
-                        
+
                         new_attach = RegistrHistlpu(
-                                pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
-                                dedit=datetime.now(),
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                district=serializer.data['areaId'],
-                                oid=serializer.data['moId'],
-                                lpu=serializer.data['moCode'],
-                                subdiv=serializer.data['moDepId'],
-                                ss_doctor=ss_doctor_format,
-                            )
+                            pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
+                            dedit=datetime.now(),
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            district=serializer.data['areaId'],
+                            oid=serializer.data['moId'],
+                            lpu=serializer.data['moCode'],
+                            subdiv=serializer.data['moDepId'],
+                            ss_doctor=ss_doctor_format,
+                        )
                         new_attach.save()
-
                         RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
-                                lpu=serializer.data['moCode'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                ss_doctor=ss_doctor_format,
-                                lpudt_doc=serializer.data['doctorSince'],
-                            )
+                            lpu=serializer.data['moCode'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            ss_doctor=ss_doctor_format,
+                            lpudt_doc=serializer.data['doctorSince'],
+                        )
                         RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                status=StatusAttach.objects.get(status_code=1)
-                            )
-                        
-                    if len(check_list) > 1 and check_list[0][0] == check_list[1][0] and check_list[0][0] == serializer.data['moCode']:
-                        #Запрос в ФЕРЗЛ
-                        self.mixin_cleaned_data = serializer.data
-                        self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                        self.pid = pers[0].pk
-                        self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                        self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                        response_data = self.mixin_mpi_response()
+                            status=StatusAttach.objects.get(status_code=1)
+                        )
 
-                        if 'err_code' in response_data.keys():
-                            RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                ferzl_err=response_data['err_code'],
-                                remark_err=response_data['err_message'],
-                                status=StatusAttach.objects.get(status_code=3)
-                            )
-                            raise MPIError(response_data['err_code'], response_data['err_message'])
-                        
+                    else:
+                        new_attach = RegistrHistlpu(
+                            pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
+                            dedit=datetime.now(),
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            district=serializer.data['areaId'],
+                            oid=serializer.data['moId'],
+                            lpu=serializer.data['moCode'],
+                            subdiv=serializer.data['moDepId'],
+                            ss_doctor=ss_doctor_format,
+                        )
+                        new_attach.save()
+                        RegisterAttach.objects.filter(pk=attach_send.pk).update(
+                            status=StatusAttach.objects.get(status_code=1)
+                        )
+
+                elif len(attach_areatype) != 0:
+                    new_attach = RegistrHistlpu(
+                        pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
+                        dedit=datetime.now(),
+                        lpudt=serializer.data['dateAttachB'],
+                        lpudx=serializer.data['dateAttachE'],
+                        lpuauto=serializer.data['attachMethod'],
+                        lputype=serializer.data['areaType'],
+                        district=serializer.data['areaId'],
+                        oid=serializer.data['moId'],
+                        lpu=serializer.data['moCode'],
+                        subdiv=serializer.data['moDepId'],
+                        ss_doctor=ss_doctor_format,
+                    )
+                    new_attach.save()
+                    if str(serializer.data['areaType']) == '1':
+                        RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
+                            lpu=serializer.data['moCode'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            ss_doctor=ss_doctor_format,
+                            lpudt_doc=serializer.data['doctorSince'],
+                        )                       
+                    RegisterAttach.objects.filter(pk=attach_send.pk).update(
+                        status=StatusAttach.objects.get(status_code=1)
+                    )
+
+                else:
+                    if len(attach) != 0:
                         for attach_item in attach:
-                            if attach_item.lputype == str(serializer.data['areaType']):
+                            if attach_item.lputype is None or attach_item.lputype == '':
                                 RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
                                     dedit=datetime.now(),
-                                    lpudt=serializer.data['dateAttachB'],
-                                    lpudx=serializer.data['dateAttachE'],
-                                    lpuauto=serializer.data['attachMethod'],
-                                    lputype=serializer.data['areaType'],
-                                    district=serializer.data['areaId'],
-                                    oid=serializer.data['moId'],
-                                    subdiv=serializer.data['moDepId'],
-                                    ss_doctor=ss_doctor_format,
+                                    lpudx=datetime.strptime(serializer.data['dateAttachB'], '%Y-%m-%d').date()-timedelta(days=1),
                                 )
-
-                                RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
-                                    lpu=serializer.data['moCode'],
-                                    lpuauto=serializer.data['attachMethod'],
-                                    lputype=serializer.data['areaType'],
-                                    lpudt=serializer.data['dateAttachB'],
-                                    lpudx=serializer.data['dateAttachE'],
-                                    ss_doctor=ss_doctor_format,
-                                    lpudt_doc=serializer.data['doctorSince'],
-                                    )
-                                RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                    status=StatusAttach.objects.get(status_code=1)
-                                    )
-                                
-                    if len(check_list) > 1 and check_list[0][0] == check_list[1][0] and check_list[0][0] != serializer.data['moCode']:
-                        #Запрос в ФЕРЗЛ
-                        self.mixin_cleaned_data = serializer.data
-                        self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                        self.pid = pers[0].pk
-                        self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                        self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                        response_data = self.mixin_mpi_response()
-
-                        if 'err_code' in response_data.keys():
-                            RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                ferzl_err=response_data['err_code'],
-                                remark_err=response_data['err_message'],
-                                status=StatusAttach.objects.get(status_code=3)
-                            )
-                            raise MPIError(response_data['err_code'], response_data['err_message'])
-                        
-                        for attach_item in attach:
-                            RegistrHistlpu.objects.using('registr').filter(pk=attach_item.pk).update(
-                                dedit=datetime.now(),
-                                lpudx=datetime.strptime(serializer.data['dateAttachB'], '%Y-%m-%d').date()-timedelta(days=1),
-                            )
-
                         new_attach = RegistrHistlpu(
-                                pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
-                                dedit=datetime.now(),
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                district=serializer.data['areaId'],
-                                oid=serializer.data['moId'],
-                                lpu=serializer.data['moCode'],
-                                subdiv=serializer.data['moDepId'],
-                                ss_doctor=ss_doctor_format,
-                            )
-                        new_attach.save()
-
-                        RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
-                                lpu=serializer.data['moCode'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                ss_doctor=ss_doctor_format,
-                                lpudt_doc=serializer.data['doctorSince'],
-                            )
-                        RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                status=StatusAttach.objects.get(status_code=1)
-                            )
-                        
-                else:
-                    #Запрос в ФЕРЗЛ
-                    self.mixin_cleaned_data = serializer.data
-                    self.mixin_cleaned_data['rguid'] = uuid.uuid4()
-                    self.pid = pers[0].pk
-                    self.attach_id = RegisterAttach.objects.get(pk=attach_send.pk)
-                    self.mixin_cleaned_data['snilsDoctor'] = ss_doctor_format
-                    response_data = self.mixin_mpi_response()
-
-                    if 'err_code' in response_data.keys():
-                        RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                            ferzl_err=response_data['err_code'],
-                            remark_err=response_data['err_message'],
-                            status=StatusAttach.objects.get(status_code=3)
+                            pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
+                            dedit=datetime.now(),
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            district=serializer.data['areaId'],
+                            oid=serializer.data['moId'],
+                            lpu=serializer.data['moCode'],
+                            subdiv=serializer.data['moDepId'],
+                            ss_doctor=ss_doctor_format,
                         )
-                        raise MPIError(response_data['err_code'], response_data['err_message'])
-                    
-                    new_attach = RegistrHistlpu(
-                                pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
-                                dedit=datetime.now(),
-                                lpudt=serializer.data['dateAttachB'],
-                                lpudx=serializer.data['dateAttachE'],
-                                lpuauto=serializer.data['attachMethod'],
-                                lputype=serializer.data['areaType'],
-                                district=serializer.data['areaId'],
-                                oid=serializer.data['moId'],
-                                lpu=serializer.data['moCode'],
-                                subdiv=serializer.data['moDepId'],
-                                ss_doctor=ss_doctor_format,
-                            )
-                    new_attach.save()
-
-                    RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
+                        new_attach.save()
+                        if str(serializer.data['areaType']) == '1':
+                            RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
                                 lpu=serializer.data['moCode'],
                                 lpuauto=serializer.data['attachMethod'],
                                 lputype=serializer.data['areaType'],
@@ -458,14 +291,42 @@ class RegisterAttachView(MpiRegisterAttachMixin, APIView):
                                 lpudx=serializer.data['dateAttachE'],
                                 ss_doctor=ss_doctor_format,
                                 lpudt_doc=serializer.data['doctorSince'],
-                            )
-                    RegisterAttach.objects.filter(pk=attach_send.pk).update(
-                                status=StatusAttach.objects.get(status_code=1)
-                            )
-                    
-                    context = {}
-                    for k, v in serializer.data.items():
-                        if v is not None:
-                            context[k] = v
+                            )                       
+                        RegisterAttach.objects.filter(pk=attach_send.pk).update(
+                            status=StatusAttach.objects.get(status_code=1)
+                        )
+                    else:
+                        new_attach = RegistrHistlpu(
+                            pid=RegistrPeople.objects.using('registr').get(pk=pers[0].pk),
+                            dedit=datetime.now(),
+                            lpudt=serializer.data['dateAttachB'],
+                            lpudx=serializer.data['dateAttachE'],
+                            lpuauto=serializer.data['attachMethod'],
+                            lputype=serializer.data['areaType'],
+                            district=serializer.data['areaId'],
+                            oid=serializer.data['moId'],
+                            lpu=serializer.data['moCode'],
+                            subdiv=serializer.data['moDepId'],
+                            ss_doctor=ss_doctor_format,
+                        )
+                        new_attach.save()
+                        if str(serializer.data['areaType']) == '1':
+                            RegistrPeople.objects.using('registr').filter(pk=pers[0].pk).update(
+                                lpu=serializer.data['moCode'],
+                                lpuauto=serializer.data['attachMethod'],
+                                lputype=serializer.data['areaType'],
+                                lpudt=serializer.data['dateAttachB'],
+                                lpudx=serializer.data['dateAttachE'],
+                                ss_doctor=ss_doctor_format,
+                                lpudt_doc=serializer.data['doctorSince'],
+                            )                       
+                        RegisterAttach.objects.filter(pk=attach_send.pk).update(
+                            status=StatusAttach.objects.get(status_code=1)
+                        )
+
+            context = {}
+            for k, v in serializer.data.items():
+                if v is not None:
+                    context[k] = v
 
             return Response(context, 200)
