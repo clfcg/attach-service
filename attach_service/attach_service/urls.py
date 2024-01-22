@@ -27,6 +27,8 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),
+
+    path('', include('attach.urls', namespace='attach_site')),
 ]
 
 if settings.DEBUG:

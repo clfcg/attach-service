@@ -1,4 +1,5 @@
 /my_env
+node_modules
 files
 temp_files
 __pycache__

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'drf_api_logger',
     'drf_spectacular',
+    'compressor',
 ]
 
 MIDDLEWARE = [
@@ -73,7 +74,7 @@ ROOT_URLCONF = 'attach_service.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -151,6 +152,8 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
+STATIC_ROOT = BASE_DIR / 'static'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = BASE_DIR / 'files'
@@ -198,3 +201,7 @@ SPECTACULAR_SETTINGS = {
 
 MPI_TOKEN = env('MPI_TOKEN')
 MPI_REGISTER_ATTACH_URL = env('MPI_REGISTER_ATTACH_URL')
+
+COMPRESSOR_ROOT = BASE_DIR / 'static'
+COMPRESS_ENABLED = True
+STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
