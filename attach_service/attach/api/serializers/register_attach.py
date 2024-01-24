@@ -26,7 +26,7 @@ class RegisterAttachSerializer(serializers.Serializer):
     def validate(self, data):
         req_list = ['externalRequestId', 'enp', 'dateAttachB', 'attachMethod',
                     'areaType', 'moId', 'moCode', 'moDepId']
-        
+
         for field in req_list:
             if field not in data.keys():
                 raise ex.ParameterIsRequired(field)

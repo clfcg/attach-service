@@ -10,7 +10,7 @@
             {% if dateAttachE is not None %}<mpi:dateAttachE>{{ dateAttachE }}</mpi:dateAttachE>{% endif %}
             <mpi:attachMethod>{{ attachMethod }}</mpi:attachMethod>
             <mpi:areaType>{{ areaType }}</mpi:areaType>
-            {% if areaId is not None %}<mpi:areaId>{{ areaId }}</mpi:areaId>{% endif %}
+            <!--{% if areaId is not None %}<mpi:areaId>{{ areaId }}</mpi:areaId>{% endif %}-->
             <mpi:moId>{{ moId }}</mpi:moId>
             <mpi:moCode>{{ moCode }}</mpi:moCode>
             {% if moFId is not None %}<mpi:moFId>{{ moFId }}</mpi:moFId>{% endif %}

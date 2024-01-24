@@ -1,7 +1,7 @@
 import re
-from datetime import date
+from datetime import date, timedelta, datetime
 
-from django.db.models import F, DateField, IntegerField
+from django.db.models import F, DateField, IntegerField, Q
 from django.db.models.functions import Cast
 
 from rest_framework import status, serializers
@@ -80,10 +80,15 @@ class GetAttachStatusChangeView(APIView):
         elif not re.fullmatch(DATE_REGEX, query_end_d):
             raise InvalidDateFormatOrNone('queryEndD')
         else:
+            query_end_d = (datetime.strptime(query_end_d, '%Y-%m-%d')  + timedelta(days=1)).strftime('%Y-%m-%d')
             attach_data = RegistrHistlpu.objects.using('registr').filter(
-                lpudt__range=(query_begin_d, query_end_d))
+                Q(lpudt__range=(query_begin_d, query_end_d)) | Q(dedit__range=(query_begin_d, query_end_d))).filter(
+                    lpudx__isnull=True
+                )
             de_attach_data = RegistrHistlpu.objects.using('registr').filter(
-                lpudx__range=(query_begin_d, query_end_d))
+                Q(lpudx__range=(query_begin_d, query_end_d)) | Q(dedit__range=(query_begin_d, query_end_d))).filter(
+                    lpudx__isnull=False
+                )
         
         return attach_data, de_attach_data
     
